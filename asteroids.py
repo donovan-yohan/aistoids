@@ -60,10 +60,10 @@ player_bullet_cooldown_time = 30
 player_bullet_speed = 10
 
 # Set the player bullet lifespan
-player_bullet_lifespan = 60
+player_bullet_lifespan = 70
 
 # Set the player bullet damage
-player_bullet_damage = 10
+player_bullet_damage = 5
 
 # Set the initial player rotation flags
 rotate_left = False
@@ -73,10 +73,8 @@ rotate_right = False
 accelerate = False
 
 # Set the initial asteroid spawn rate
-asteroid_spawn_rate = 60
-
-# Set the asteroid spawn rate increase
-asteroid_spawn_rate_increase = 0.5
+asteroid_spawn_rate = 0
+asteroid_initial_spawn_rate = 200
 
 # Set the asteroid minimum speed
 asteroid_min_speed = 1
@@ -85,10 +83,10 @@ asteroid_min_speed = 1
 asteroid_max_speed = 3
 
 # Set the asteroid minimum size
-asteroid_min_size = 25
+asteroid_min_size = 30
 
 # Set the asteroid maximum size
-asteroid_max_size = 75
+asteroid_max_size = 175
 
 # Set the asteroid health
 asteroid_health = 100
@@ -218,11 +216,6 @@ while not game_over:
         if bullet[3] <= 0:
             player_bullets.remove(bullet)
 
-        # Spawn a new asteroid if the asteroid spawn rate is 0
-        if asteroid_spawn_rate == 0:
-            # Choose a random edge of the screen to spawn the asteroid from
-            edge = random.randint(1, 4)
-
     # Spawn a new asteroid if the asteroid spawn rate is 0
     if asteroid_spawn_rate == 0:
         # Choose a random edge of the screen to spawn the asteroid from
@@ -245,12 +238,12 @@ while not game_over:
         # Calculate the angle to the player
         dx = player_pos[0] - x
         dy = player_pos[1] - y
-        angle = math.atan2(dy, dx)
+        angle = math.atan2(dx, dy)
         # Create the new asteroid
-        new_asteroid = [x, y, angle, speed, size, asteroid_health]
+        new_asteroid = [x, y, angle, speed, size * 0.8, size / 10, pygame.transform.scale(asteroid_image, (size, size)), size / 10]
         asteroids.append(new_asteroid)
         # Reset the asteroid spawn rate
-        asteroid_spawn_rate = int(asteroid_spawn_rate_increase * 60)
+        asteroid_spawn_rate = asteroid_initial_spawn_rate - score
     else:
         # Decrement the asteroid spawn rate
         asteroid_spawn_rate -= 1
@@ -258,9 +251,8 @@ while not game_over:
     # Update the asteroid positions
     for asteroid in asteroids:
         # Calculate the asteroid's new position
-        angle_rad = math.radians(asteroid[2])
-        asteroid[0] += asteroid[3] * math.cos(angle_rad)
-        asteroid[1] += asteroid[3] * math.sin(angle_rad)
+        asteroid[0] += asteroid[3] * math.sin(asteroid[2])
+        asteroid[1] += asteroid[3] * math.cos(asteroid[2])
 
     # Check for collisions between bullets and asteroids
     for bullet in player_bullets:
@@ -277,8 +269,8 @@ while not game_over:
                 player_bullets.remove(bullet)
                 # Check if the asteroid is destroyed
                 if asteroid[5] <= 0:
-                    # Add the asteroid's score value to the game score
-                    score += asteroid_score_value
+                    # Add the asteroid's health value to the game score
+                    score += (math.floor(asteroid[7] / 5) + 1) * 5
                     # Remove the asteroid
                     asteroids.remove(asteroid)
 
@@ -311,7 +303,7 @@ while not game_over:
     for asteroid in asteroids:
         rect = pygame.Rect(0, 0, asteroid[4], asteroid[4])
         rect.center = (asteroid[0], asteroid[1])
-        screen.blit(asteroid_image, rect)
+        screen.blit(asteroid[6], rect)
 
     # Draw the bullets
     for bullet in player_bullets:
